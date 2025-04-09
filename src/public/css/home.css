@@ -1,0 +1,44 @@
+.home-container {
+  position: relative;
+  width: auto;
+  height: auto;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(-45deg, #e7dedef0, #5464e1, #1f5fd6fc, #0832a7);
+}
+
+.home-container .nav-item a {
+  color: #e3c08d;
+}
+
+.home-container .nav-item a.disabled {
+  color: #558816;
+}
+
+.home-container .navigation-menu {
+  position: relative;
+  z-index: 10000;
+  color: #b5b522;
+  font-size: 50px;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+
+
+body
+{
+ background-color: #0a3765;
+}
+#tyre1, #tyre2
+{
+   transform-box: fill-box;
+    transform-origin: center;
+}
+
+ #padel
+{
+   transform-box: fill-box;
+    transform-origin: 91% 49%;
+}
