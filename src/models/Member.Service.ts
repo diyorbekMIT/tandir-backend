@@ -113,6 +113,16 @@ class MemberService {
         if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND);
         return result;
     }
+
+    public async getMemberDetail(member: Member): Promise<Member> {
+        if (!member || !member._id) {
+          throw new Errors(HttpCode.BAD_REQUEST, Message.INVALID_INPUT);
+        }
+        const memberId = shapeIntoMongooseObjectId(member._id);
+        const result = await this.memberModel.findOne({ memberStatus: MemberStatus.ACTIVE, _id: memberId }).exec();
+        if (!result) throw new Errors(HttpCode.NOT_FOUND, Message.NO_DATA_FOUND); // 404 here
+        return result;
+      }
 }
 
 export default MemberService;

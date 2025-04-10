@@ -17,19 +17,21 @@ const authService = new AuthService();
 
 
 memberController.verifyAuth = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
-  try{
-    
+  try {
     const token = req.cookies["accessToken"];
-    if (token) req.member = await authService.checkAuth(token);
-
-    if (!token) throw new Errors(HttpCode.UNAUTHORIZED, Message.NOT_AUTHONTICATED);
+    if (!token) {
+      throw new Errors(HttpCode.UNAUTHORIZED, Message.NOT_AUTHONTICATED); // Check this first
+    }
+    req.member = await authService.checkAuth(token); // Then validate token
     next();
-  } catch(err) {
+  } catch (err) {
     console.log("ERROR", err);
-    if (err instanceof Errors) res.status(err.code).json(err);
-    else res.status(Errors.standard.code).json(Errors.standard);
-} 
-}
+    if (err instanceof Errors) {
+      return res.status(err.code).json(err); // Stop here
+    }
+    return res.status(Errors.standard.code).json(Errors.standard); // Stop here
+  }
+};
 
 
 memberController.retrieveAuth = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
@@ -140,5 +142,21 @@ memberController.updateChoosesUser = async (req: AdminRequest, res: Response) =>
   }
 }
 
+
+memberController.getMemberDetail = async (req: ExtendedRequest, res: Response) => {
+  try {
+    console.log("getMemberDetail");
+    if (!req.member) {
+      throw new Errors(HttpCode.UNAUTHORIZED, Message.NOT_AUTHONTICATED);
+    }
+    const result = await memberService.getMemberDetail(req.member);
+    console.log(result);
+    return res.status(HttpCode.OK).json(result);
+  } catch (err) {
+    console.log("ERROR on getMemberDetail", err);
+    if (err instanceof Errors) return res.status(err.code).json(err);
+    else return res.status(Errors.standard.code).json(Errors.standard);
+  }
+};
 
 export default memberController
