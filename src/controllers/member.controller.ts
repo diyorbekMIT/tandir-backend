@@ -2,7 +2,7 @@ import MemberService from "../models/Member.Service";
 import { T } from "../libs/types/common";
 import express, { NextFunction, Request, Response } from "express";
 import Errors, { HttpCode, Message } from "../libs/Errrors";
-import { AdminRequest } from "../libs/types/member";
+import { AdminRequest, ExtendedRequest } from "../libs/types/member";
 import { MemberType } from "../libs/enums/member.enum";
 import { AUTH_TIME, shapeIntoMongooseObjectId } from "../libs/config";
 import AuthService from "../models/Auth.Service";
@@ -16,21 +16,43 @@ const memberService = new MemberService();
 const authService = new AuthService();
 
 
-
-memberController.verifyAuth = async (req: Request, res: Response) => {
+memberController.verifyAuth = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
   try{
-    let member = null;
+    
     const token = req.cookies["accessToken"];
-    if (token) member = await authService.checkAuth(token);
-    res.status(200).json({ member: member});
+    if (token) req.member = await authService.checkAuth(token);
 
-    if (!member) throw new Errors(HttpCode.UNAUTHORIZED, Message.NOT_AUTHONTICATED);
-    console.log(member);
+    if (!token) throw new Errors(HttpCode.UNAUTHORIZED, Message.NOT_AUTHONTICATED);
+    next();
   } catch(err) {
     console.log("ERROR", err);
     if (err instanceof Errors) res.status(err.code).json(err);
     else res.status(Errors.standard.code).json(Errors.standard);
 } 
+}
+
+
+memberController.retrieveAuth = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
+  try{
+    
+    const token = req.cookies["accessToken"];
+    if (token) req.member = await authService.checkAuth(token);
+     next()
+  } catch(err) {
+    console.log("ERROR", err);
+    next();
+} 
+}
+
+memberController.logout = async (req: ExtendedRequest, res: Response) => {
+    try{
+      console.log("logout");
+      res.cookie("accessToken", null, {maxAge: 0, httpOnly: true});
+      res.status(HttpCode.OK).json({logout: true});
+    } catch(err) {
+      if (err instanceof Errors) res.status(err.code).json(err);
+      else res.status(Errors.standard.code).json(Errors.standard);
+    }
 }
 
 
