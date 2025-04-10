@@ -2,7 +2,7 @@ import MemberService from "../models/Member.Service";
 import { T } from "../libs/types/common";
 import express, { NextFunction, Request, Response } from "express";
 import Errors, { HttpCode, Message } from "../libs/Errrors";
-import { AdminRequest, ExtendedRequest } from "../libs/types/member";
+import { AdminRequest, ExtendedRequest, MemberUpdate, MemberUpdateInput } from "../libs/types/member";
 import { MemberType } from "../libs/enums/member.enum";
 import { AUTH_TIME, shapeIntoMongooseObjectId } from "../libs/config";
 import AuthService from "../models/Auth.Service";
@@ -45,6 +45,22 @@ memberController.retrieveAuth = async (req: ExtendedRequest, res: Response, next
     next();
 } 
 }
+
+memberController.getMemberDetail = async (req: ExtendedRequest, res: Response) => {
+  try {
+    console.log("getMemberDetail");
+    if (!req.member) {
+      throw new Errors(HttpCode.UNAUTHORIZED, Message.NOT_AUTHONTICATED);
+    }
+    const result = await memberService.getMemberDetail(req.member);
+    console.log(result);
+    return res.status(HttpCode.OK).json(result);
+  } catch (err) {
+    console.log("ERROR on getMemberDetail", err);
+    if (err instanceof Errors) return res.status(err.code).json(err);
+    else return res.status(Errors.standard.code).json(Errors.standard);
+  }
+};
 
 memberController.logout = async (req: ExtendedRequest, res: Response) => {
     try{
@@ -142,21 +158,21 @@ memberController.updateChoosesUser = async (req: AdminRequest, res: Response) =>
   }
 }
 
+memberController.updateMember = async (req: ExtendedRequest, res: Response) => {
+  try{
+    console.log("updateMember");
+    const input: MemberUpdate = req.body;
+    if (req.file) input.memberImage = req.file.path;
 
-memberController.getMemberDetail = async (req: ExtendedRequest, res: Response) => {
-  try {
-    console.log("getMemberDetail");
-    if (!req.member) {
-      throw new Errors(HttpCode.UNAUTHORIZED, Message.NOT_AUTHONTICATED);
-    }
-    const result = await memberService.getMemberDetail(req.member);
-    console.log(result);
-    return res.status(HttpCode.OK).json(result);
+    const result = await memberService.updateMember(req.member, input);
+    
+    res.status(HttpCode.OK).json({result: result});
   } catch (err) {
-    console.log("ERROR on getMemberDetail", err);
-    if (err instanceof Errors) return res.status(err.code).json(err);
-    else return res.status(Errors.standard.code).json(Errors.standard);
+    console.log("ERROR on updateMember", err);
+    if (err instanceof Errors) res.status(err.code).json(err);
+    else res.status(Errors.standard.code).json(Errors.standard)
   }
-};
+}
 
-export default memberController
+
+export default memberController;
