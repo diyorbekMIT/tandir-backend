@@ -134,6 +134,14 @@ class MemberService {
             return result;
         
       }
+
+      public async getTopUsers(): Promise<Member[]> {
+        const result = await this.memberModel.find(
+            {memberStatus: MemberStatus.ACTIVE, memberType: MemberType.USER, memberPoints: {$gte: 1}})
+            .sort({memberPoints: -1}).limit(4);
+
+        return result;
+      }
 }
 
 export default MemberService;
