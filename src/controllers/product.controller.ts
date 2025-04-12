@@ -1,15 +1,18 @@
-import { AdminRequest } from "../libs/types/member";
+import { AdminRequest, ExtendedRequest } from "../libs/types/member";
 import { T } from "../libs/types/common";
 import Errors, { HttpCode, Message } from "../libs/Errrors";
-import  { Response , Request} from "express";
+import  { Response , Request, response} from "express";
 import ProductService from "../models/Product.Service";
-import { Product, ProductInput, ProductUpdateInput } from "../libs/types/product";
-import { ProductSize } from "../libs/enums/product.enum";
+import { Product, ProductInput, ProductInquiry, ProductUpdateInput } from "../libs/types/product";
+import { ProductCollection, ProductSize } from "../libs/enums/product.enum";
 import { ProductStatus } from "../libs/enums/product.enum";
 import { ProductVolume } from "../libs/enums/product.enum";
+import ViewService from "../models/View.Service";
+
 
 
 const productService = new ProductService();
+const viewService = new ViewService();
 
 const productController: T = {};
 
@@ -84,6 +87,46 @@ productController.updateProduct = async (req: AdminRequest, res: Response) => {
     } catch (err) {
         console.log("Error, updateProduct", err);
         res.status(Errors.standard.code).json(Errors.standard);
+    }
+}
+
+//SPA
+
+productController.getAll = async(req: ExtendedRequest, res: Response) => {
+    try{
+        const {page, limit, order, productCollection, search} = req.query;
+        const inquiry: ProductInquiry = {
+            order: String(order),
+            limit: Number(limit),
+            page: Number(page)
+        }
+
+        if (productCollection) {inquiry.productCollection = productCollection as ProductCollection};
+
+        if (search) {inquiry.search = String(search)};
+
+        const result = await productService.getAll(inquiry);
+
+        res.status(HttpCode.OK).json(result);
+    } catch(err) {
+        console.log("Error, getAll", err);
+        if (err instanceof Errors) res.status(err.code).json(err)
+        else res.status(Errors.standard.code).json(Errors.standard)
+    }
+}
+
+productController.getProduct = async(req: ExtendedRequest, res: Response) => {
+    try {
+        const {productId} = req.params,
+         memberId = req.member?._id ?? null;
+
+         console.log(memberId, productId);
+
+         res.status(HttpCode.OK).json({result: "DONE"});
+
+    } catch(err) {
+        if (err instanceof Errors) res.status(err.code).json(err)
+        else res.status(Errors.standard.code).json(Errors.standard)
     }
 }
 
